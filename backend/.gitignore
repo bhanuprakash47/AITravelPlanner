@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build / runtime output
+dist
+build
+coverage
+logs
+*.log
+
+# Temporary files
+.tmp
+tmp
+*.tmp
+
+# OS / editor artifacts
+.DS_Store
+.vscode/
+.idea/
