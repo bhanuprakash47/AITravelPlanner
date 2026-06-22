@@ -18,7 +18,7 @@ app.use(cors())
 app.use(express.json())
 
 app.use("/api/auth",router)
-app.use("/api/trip",tripRouter)
+app.use("/api/trips",tripRouter)
 
 const PORT=process.env.PORT
 

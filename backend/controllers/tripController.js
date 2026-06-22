@@ -1,5 +1,177 @@
 import Trip from '../models/Trip.js';
 
+const validSchema = `
+    Return a JSON object that follows this structure exactly.
+
+    {
+      "destination": String,
+      "durationDays": Number,
+      "budgetTier": "Low" | "Medium" | "High",
+      "interests": [String],
+
+      "itinerary": [
+        {
+          "dayNumber": Number,
+          "activities": [
+            {
+              "title": String,
+              "description": String,
+              "estimatedCostUSD": Number,
+              "timeOfDay": "Morning" | "Afternoon" | "Evening"
+            }
+          ]
+        }
+      ],
+
+      "hotels": [
+        {
+          "name": String,
+          "tier": String,
+          "estimatedCostNightUSD": Number,
+          "rating": String
+        }
+      ],
+
+      "estimatedBudget": {
+        "transport": Number,
+        "accommodation": Number,
+        "food": Number,
+        "activities": Number,
+        "total": Number
+      },
+
+      "packingList": [
+        {
+          "item": String,
+          "category": "Documents" | "Clothing" | "Gear" | "Other",
+          "isPacked": Boolean
+        }
+      ]
+    }
+
+    Validation Rules
+
+    - destination must be a string.
+
+    - durationDays must be a positive integer.
+
+    - budgetTier must be exactly one of:
+      • Low
+      • Medium
+      • High
+
+    - interests must be an array of strings.
+
+    - itinerary must be an array.
+
+    - Every itinerary object must contain:
+      • dayNumber
+      • activities
+
+    - dayNumber must start from 1 and increase sequentially.
+
+    - activities must be an array.
+
+    - Every activity must contain:
+      • title
+      • description
+      • estimatedCostUSD
+      • timeOfDay
+
+    - estimatedCostUSD must be a number greater than or equal to 0.
+
+    - timeOfDay must be EXACTLY one of:
+      • Morning
+      • Afternoon
+      • Evening
+
+    Never generate values like:
+    Late Morning
+    Late Afternoon
+    Morning/Afternoon
+    Evening/Night
+    Night
+    Noon
+    Midnight
+
+    If needed:
+    Late Morning → Morning
+    Late Afternoon → Afternoon
+
+    - hotels must be an array.
+
+    - Every hotel must contain:
+      • name
+      • tier
+      • estimatedCostNightUSD
+      • rating
+
+    - estimatedCostNightUSD must be a number greater than or equal to 0.
+
+    - estimatedBudget must contain:
+      • transport
+      • accommodation
+      • food
+      • activities
+      • total
+
+    - Every budget value must be a number greater than or equal to 0.
+
+    - total should approximately equal:
+
+    transport + accommodation + food + activities
+
+    - packingList must be an array.
+
+    - Every packing item must contain:
+      • item
+      • category
+      • isPacked
+
+    - category must be EXACTLY one of:
+      • Documents
+      • Clothing
+      • Gear
+      • Other
+
+    Automatically convert similar categories using these mappings:
+
+    Electronics → Gear
+    Technology → Gear
+    Gadgets → Gear
+    Camera → Gear
+    Chargers → Gear
+    Power Bank → Gear
+
+    Money → Other
+    Wallet → Other
+    Currency → Other
+    Finances → Other
+
+    Health → Other
+    Medical → Other
+    Medicine → Other
+    First Aid → Other
+    Personal Care → Other
+    Toiletries → Other
+
+    Accessories → Other
+    Travel Essentials → Other
+    Essentials → Other
+
+    - isPacked must always be true or false.
+
+    Do not remove required fields.
+
+    Return only valid JSON.
+
+    Do not include markdown.
+
+    Do not include explanations.
+
+    Do not include code blocks.
+    `;
+
 // Exponential backoff executor for external API resilience
 const fetchWithRetry=async(url, options, retries = 5, delay = 1000) =>{
   try {
@@ -26,7 +198,7 @@ const fetchWithRetry=async(url, options, retries = 5, delay = 1000) =>{
 
 //create new trip
 export const generateNewTrip= async(req, res)=> {
-  const { destination, durationDays, budgetTier, interests } = req.body;
+  const { destination, durationDays, budgetTier, interests=[] } = req.body;
   const userId = req.user.id; // Populated from authentication middleware securely
   console.log("body",req.body)
 
@@ -75,9 +247,7 @@ export const generateNewTrip= async(req, res)=> {
 
     Make sure estimates match typical realistic local rates for the specified budgetTier.
 
-    =================================================
-    IMPORTANT RESPONSE VALIDATION RULES (MANDATORY)
-    =================================================
+    IMPORTANT RESPONSE VALIDATION RULES (MANDATORY):
 
     Return ONLY valid JSON. Do not include markdown, explanations, or code blocks.
 
@@ -147,6 +317,7 @@ export const generateNewTrip= async(req, res)=> {
     Other
 
     The response MUST strictly follow these rules so that it passes schema validation without any modifications.
+    The JSON response must strictly follow this schema. ${validSchema}
     `;
 
   try {
@@ -245,7 +416,7 @@ export const updateTrip = async (req, res) => {
             },
             { $set: updates },
             {
-                new: true,
+                returnDocument:"after",
                 runValidators: true
             }
         );
@@ -271,3 +442,159 @@ export const updateTrip = async (req, res) => {
 };
 
 //regenerate trip using llm
+export const regenerateTrip=async(req,res)=>{
+  try{
+    //get trip from db
+
+    const {instruction}=req.body
+
+    if(!instruction||!instruction.trim()){
+      return res.status(400).json({
+        message:"Instruction is required."
+      })
+    }
+
+    const requiredTrip=await Trip.findOne({
+      _id:req.params.id,
+      userId:req.user.id
+    })
+
+    if(!requiredTrip){
+      return res.status(404).json({
+        message:"Trip not found"
+      })
+    }
+
+    const prompt = `
+        You are an expert AI travel planner.
+
+        Below is the user's current trip.
+
+        ${JSON.stringify(requiredTrip, null, 2)}
+
+        The user wants to modify this trip.
+
+        User request:
+        "${instruction}"
+
+        Read the existing trip carefully and understand what the user is asking.
+
+        Update the trip to satisfy the user's request while keeping the trip realistic, consistent and well organized.
+
+        Only change the parts of the trip that are necessary.
+
+        Do not make unnecessary changes to unrelated sections.
+
+        Even if only one small part changes, return the COMPLETE updated trip.
+
+        Keep the same JSON structure as the original trip.
+
+        The response must include:
+
+        - destination
+        - durationDays
+        - budgetTier
+        - interests
+        - itinerary
+        - hotels
+        - estimatedBudget
+        - packingList
+
+        For every activity, timeOfDay must be exactly one of:
+
+        - Morning
+        - Afternoon
+        - Evening
+
+        If an activity would normally occur during Late Morning or Late Afternoon, convert it to Morning or Afternoon.
+
+        For every packing list item, category must be exactly one of:
+
+        - Documents
+        - Clothing
+        - Gear
+        - Other
+
+        Use these mappings whenever necessary:
+
+        Electronics → Gear
+        Technology → Gear
+        Gadgets → Gear
+        Camera → Gear
+        Chargers → Gear
+        Power Bank → Gear
+
+        Money → Other
+        Wallet → Other
+        Currency → Other
+        Finances → Other
+        Health → Other
+        Medical → Other
+        Medicine → Other
+        First Aid → Other
+        Personal Care → Other
+        Toiletries → Other
+        Accessories → Other
+        Travel Essentials → Other
+        Essentials → Other
+
+        Do not generate any category outside:
+        - Documents
+        - Clothing
+        - Gear
+        - Other
+
+        
+
+        Do not include markdown.
+
+        Do not include explanations.
+
+        Do not wrap the response inside code blocks.
+        Return only valid JSON.
+
+        The JSON response must strictly follow this schema.  ${validSchema}
+        `;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const requestPayload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json"
+      }
+    };
+    console.log("RequestPayload:",requestPayload)
+
+    const data = await fetchWithRetry(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestPayload)
+    });
+    
+    const parsedResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!parsedResponseText) {
+      throw new Error("Could not extract generation data from response.");
+    }
+
+    const cleanResult = JSON.parse(parsedResponseText);
+    console.log("cleanResult",cleanResult,"stopcleanresult")
+
+    //saving to db
+    Object.assign(requiredTrip,cleanResult)
+    
+    await requiredTrip.save()
+
+    res.status(200).json({
+      message:"Trip regenerated successfully.",
+      trip:requiredTrip
+    })
+
+
+
+  }catch(error){
+    console.error("Critical AI Generation Error:", error);
+    return res.status(500).json({ message: "Fail-safe: API encountered an error processing your trip. Please try again." });
+  }
+}
