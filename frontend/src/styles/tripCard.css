@@ -1,0 +1,96 @@
+.trip-card {
+    width: 320px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    padding: 18px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.trip-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.trip-destination {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #000000;
+
+    text-transform: capitalize;
+}
+
+.trip-budget-tier {
+    margin: 0;
+    color: #475569;
+    font-size: 14px;
+}
+
+.trip-duration {
+    margin: 0;
+    color: #334155;
+    font-size: 16px;
+}
+
+.trip-interests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.interest-tag {
+    padding: 5px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #334155;
+    background-color: #f8fafc;
+}
+
+.trip-budget {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.budget-label {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.budget-amount {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 500;
+    color: #000000;
+}
+
+.trip-date {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.details-btn {
+    margin-top: auto;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #D9D9D9;
+    color: #000000;
+    cursor: pointer;
+}
+
+.details-btn:hover {
+    background-color: #1284fa;
+    color: #ffffff;
+    border: 1px solid #1284fa;
+}
