@@ -2,13 +2,11 @@ import User from "../models/User.js"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 
-const secretKey = process.env.JWT_SECRET_KEY
-if(!secretKey){
-    throw new Error("JWT secret missing. Set JWT_SECRET_KEY in backend/.env")
-}
+
 
 export const registerUser=async(req,res)=>{
     try{
+        console.log(req.body)
         const {name,email,password}=req.body
         //check fields are valid
         if(!name || !email || !password){
@@ -20,9 +18,7 @@ export const registerUser=async(req,res)=>{
         
         //check if user exist
         const normalizedEmail=email?.toLowerCase()
-        const existingUser= await User.findOne({
-            where:{email:normalizedEmail}
-        })
+        const existingUser= await User.findOne({email:normalizedEmail})
         if(existingUser) return res.status(409).json({message:"User already Exists"})
          
         //Hash password    
@@ -52,10 +48,17 @@ export const loginUser=async(req,res)=>{
         const {email,password}=req.body
         //validate input fields
         if(!email || !password) return res.status(400).json({message:"All fields are required"})
-        
+         
+        //check secret key
+        const secretKey = process.env.JWT_SECRET_KEY
+        if(!secretKey){
+            throw new Error("JWT secret missing. Set JWT_SECRET_KEY in backend/.env")
+        }
+
         //check user exists
         const normalizedEmail=email?.toLowerCase()
-        const user= await User.findOne({where:{email:normalizedEmail}})
+        const user= await User.findOne({email:normalizedEmail})
+
         if(!user){
            return res.status(400).json({message:"Invalid email or password"})
         }
@@ -70,7 +73,7 @@ export const loginUser=async(req,res)=>{
         }
 
         //generate token
-        const token = jwt.sign({ id: user.id, email: user.email },secretKey,{ expiresIn: "1h" })
+        const token = jwt.sign({ id: user._id, email: user.email },secretKey,{ expiresIn: "1h" })
 
         res.status(200).json({message: "Logged in successfully",token,})
 
