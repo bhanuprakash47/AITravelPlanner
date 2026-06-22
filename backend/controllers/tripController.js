@@ -586,7 +586,7 @@ export const regenerateTrip=async(req,res)=>{
     
     await requiredTrip.save()
 
-    res.status(200).json({
+    return res.status(200).json({
       message:"Trip regenerated successfully.",
       trip:requiredTrip
     })
@@ -596,5 +596,50 @@ export const regenerateTrip=async(req,res)=>{
   }catch(error){
     console.error("Critical AI Generation Error:", error);
     return res.status(500).json({ message: "Fail-safe: API encountered an error processing your trip. Please try again." });
+  }
+}
+
+
+//Get all trips
+export const allTrips=async(req,res)=>{
+  try{
+    const tripsList= await Trip.find({
+      userId:req.user.id
+    }).sort({createdAt:-1})
+
+    if(tripsList.length===0){
+      return res.status(200).json({
+        tripsList:[]
+      })
+    }
+
+    return res.status(200).json({tripsList})
+  }catch(error){
+    console.log("err fetching all trips",error)
+   return res.status(500).json({message:"Failed to fetch all trips"})
+  }
+}
+
+//delete trip 
+export const deleteTrip=async(req,res)=>{
+  try{
+    const userId=req.user.id 
+    const tripId=req.params.id
+
+    const deleted = await Trip.findOneAndDelete({
+      userId,
+      _id:tripId
+    })
+
+    if(!deleted){
+      return res.status(404).json({
+        message:"Trip not found"
+      })
+    }
+
+   return res.status(200).json({message:"trip deleted successfully"})
+  }catch(error){
+    console.log("err deleting trip",error)
+   return res.status(500).json({message:"Failed to delete"})
   }
 }
