@@ -33,15 +33,31 @@ where every user only sees and manages their own trips.
 ### AI
 
 -   Google Gemini 2.5 Flash
-
 ## Technical Justification
 
-- ### React & Hooks: 
-        I chose React to maintain a lightweight, single-page application (SPA) structure. By utilizing React Hooks (useState, useEffect, useContext), I maintained strict control over state management. This approach kept the component logic clean, modular, and easy to trace without the abstraction overhead of server-side routing, allowing for highly interactive, UI updates.
+### React & Hooks
 
-- ### CSS Flexbox:
-        I implemented the layout using standard CSS with Flexbox. This decision reflects a commitment to understanding core web fundamentals rather than relying on external styling frameworks. Building with raw Flexbox ensures a minimal, dependency-free bundle size and demonstrates an ability to architect a custom, responsive design system from scratch.
+I chose React because it makes it easier to build a single-page application with reusable components. I used React Hooks like `useState` and `useEffect` to manage component state and handle API calls. This kept the code organized and made the UI update automatically whenever the data changed.
 
+### CSS & Flexbox
+
+I used plain CSS with Flexbox instead of a CSS framework. This gave me full control over the layout and styling while keeping the project lightweight. Flexbox also helped me build a responsive user interface that works well across different screen sizes.
+
+### Node.js & Express
+
+I used Node.js with Express to build the backend because it provides a simple and efficient way to create REST APIs. Express helped me organize routes, implement authentication, and connect the application with MongoDB while keeping the backend modular and easy to maintain.
+
+### MongoDB
+
+I chose MongoDB because the trip data contains nested objects like itineraries, hotels, estimated budgets, and packing lists. A document database is a good fit for this type of data because it allows related information to be stored together in a single document.
+
+### JWT Authentication
+
+I used JWT for authentication to secure protected routes. After a successful login, the backend generates a token, which is verified before allowing access to protected APIs. This ensures that users can only access and manage their own trips.
+
+### Google Gemini 2.5 Flash
+
+I used Google Gemini 2.5 Flash to generate personalized travel plans based on the user's destination, trip duration, budget, and interests. The backend validates the AI response before saving it to MongoDB to ensure the generated data follows the expected structure.
 
 ## Features
 
