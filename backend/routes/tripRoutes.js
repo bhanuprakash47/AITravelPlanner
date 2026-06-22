@@ -1,11 +1,13 @@
 import express from "express"
-import {generateNewTrip,updateTrip,regenerateTrip,allTrips, deleteTrip} from "../controllers/tripController.js"
+import {generateNewTrip,updateTrip,regenerateTrip,allTrips, deleteTrip,getTripById} from "../controllers/tripController.js"
 import verifyToken from "../middleware/auth.js"
 
 const tripRouter=express.Router()
 
 //get all trips
 tripRouter.get("/",verifyToken, allTrips)
+//get trip by id
+tripRouter.get("/:id", verifyToken, getTripById);
 
 //create newTrip
 tripRouter.post("/new",verifyToken,generateNewTrip)
