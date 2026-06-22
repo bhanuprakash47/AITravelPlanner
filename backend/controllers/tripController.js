@@ -176,7 +176,6 @@ const validSchema = `
 const fetchWithRetry=async(url, options, retries = 5, delay = 1000) =>{
   try {
     const response = await fetch(url, options);
-    console.log("response",response)
     if (!response.ok) {
       if (response.status === 429 && retries > 0) {
         // Wait and retry on rate limits
@@ -200,7 +199,6 @@ const fetchWithRetry=async(url, options, retries = 5, delay = 1000) =>{
 export const generateNewTrip= async(req, res)=> {
   const { destination, durationDays, budgetTier, interests=[] } = req.body;
   const userId = req.user.id; // Populated from authentication middleware securely
-  console.log("body",req.body)
 
   const prompt = `
     Create a detailed travel plan for a ${durationDays}-day trip to ${destination}.
@@ -330,7 +328,6 @@ export const generateNewTrip= async(req, res)=> {
         responseMimeType: "application/json"
       }
     };
-    console.log("RequestPayload:",requestPayload)
 
     const data = await fetchWithRetry(url, {
       method: 'POST',
@@ -338,7 +335,6 @@ export const generateNewTrip= async(req, res)=> {
       body: JSON.stringify(requestPayload)
     });
 
-    console.log("data",data)
 
 
     const parsedResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -347,7 +343,6 @@ export const generateNewTrip= async(req, res)=> {
     }
 
     const cleanResult = JSON.parse(parsedResponseText);
-    console.log("cleanResult",cleanResult,"stopcleanresult")
 
     // Save user isolated trip directly into MongoDB
     const newTrip = new Trip({
@@ -362,16 +357,12 @@ export const generateNewTrip= async(req, res)=> {
       packingList: cleanResult.packingList
     });
 
-    console.log("newtrip",newTrip)
 
-    console.log("newerewirk")
 
     const savedTrip = await newTrip.save();
-    console.log("savedTrip",savedTrip)
     return res.status(201).json(savedTrip);
 
   } catch (error) {
-    console.error("Critical AI Generation Error:", error);
     return res.status(500).json({ message: "Fail-safe: API encountered an error processing your trip. Please try again." });
   }
 }
@@ -433,7 +424,6 @@ export const updateTrip = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Update Trip Error:", err);
 
         return res.status(500).json({
             message: "Internal Server Error."
@@ -565,7 +555,6 @@ export const regenerateTrip=async(req,res)=>{
         responseMimeType: "application/json"
       }
     };
-    console.log("RequestPayload:",requestPayload)
 
     const data = await fetchWithRetry(url, {
       method: 'POST',
@@ -579,7 +568,6 @@ export const regenerateTrip=async(req,res)=>{
     }
 
     const cleanResult = JSON.parse(parsedResponseText);
-    console.log("cleanResult",cleanResult,"stopcleanresult")
 
     //saving to db
     Object.assign(requiredTrip,cleanResult)
@@ -594,7 +582,6 @@ export const regenerateTrip=async(req,res)=>{
 
 
   }catch(error){
-    console.error("Critical AI Generation Error:", error);
     return res.status(500).json({ message: "Fail-safe: API encountered an error processing your trip. Please try again." });
   }
 }
@@ -615,7 +602,6 @@ export const allTrips=async(req,res)=>{
 
     return res.status(200).json({tripsList})
   }catch(error){
-    console.log("err fetching all trips",error)
    return res.status(500).json({message:"Failed to fetch all trips"})
   }
 }
@@ -639,7 +625,6 @@ export const getTripById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Get Trip Error:", error);
 
     return res.status(500).json({
       message: "Failed to fetch trip."
@@ -666,7 +651,6 @@ export const deleteTrip=async(req,res)=>{
 
    return res.status(200).json({message:"trip deleted successfully"})
   }catch(error){
-    console.log("err deleting trip",error)
    return res.status(500).json({message:"Failed to delete"})
   }
 }

@@ -6,7 +6,6 @@ import bcrypt from "bcrypt"
 
 export const registerUser=async(req,res)=>{
     try{
-        console.log(req.body)
         const {name,email,password}=req.body
         //check fields are valid
         if(!name || !email || !password){
@@ -38,7 +37,6 @@ export const registerUser=async(req,res)=>{
 
     }
     catch(err){
-        console.log("err registerErr",err.message)
         res.status(500).json({message:"Server Error"})
     }
 }
@@ -79,7 +77,6 @@ export const loginUser=async(req,res)=>{
 
     }
     catch(err){
-        console.log("err loginErr",err.message)
         res.status(500).json({message:"Server Error"})
     }
 }

@@ -74,7 +74,7 @@ const Home = () => {
 
           <button
             className="create-trip-btn"
-            onClick={() => navigate("/trip/new")}
+            onClick={() => navigate("/trips/new")}
           >
             + Create Trip
           </button>
