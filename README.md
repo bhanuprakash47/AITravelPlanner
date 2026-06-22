@@ -1,5 +1,10 @@
 # AI Travel Planner
 
+## Live Demo
+
+- **Frontend:** https://ai-travel-planner-nu-one.vercel.app
+- **Backend API:** https://aitravelplanner-knak.onrender.com/
+
 ## Project Overview
 
 AI Travel Planner is a full stack web application that helps users
